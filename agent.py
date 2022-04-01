@@ -1,3 +1,4 @@
+import copy
 import numpy as np
 
 from network import dqn
@@ -29,7 +30,7 @@ class DQNAgent:
 
         self.use_target = use_target
         self.net = dqn(state_shape, n_actions, lr)
-        self.target_net = dqn(state_shape, n_actions, lr)
+        self.target_net = copy.deepcopy(self.net)
 
     def select_action(self, state, policy=None, epsilon=None, temp=None):
         state = np.expand_dims(state, axis=0)
