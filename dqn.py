@@ -1,5 +1,6 @@
 import os
 import gym
+import copy
 import argparse
 import numpy as np
 
@@ -39,9 +40,11 @@ def dqn_training(env,
     """
 
     rewards = []
+    max_reward = 0
     state_shape = env.observation_space.shape
     n_actions = env.action_space.n
     agent = DQNAgent(state_shape, n_actions, lr, gamma, use_target)
+    best_agent = copy.deepcopy(agent)
     replay_buffer = ReplayBuffer(replay_buffer_size)
 
     for e in range(epochs):
@@ -88,10 +91,15 @@ def dqn_training(env,
         state_next_batch = np.array(state_next_batch)
         agent.update(state_batch, action_batch, reward_batch,
                      state_next_batch, done_batch)
-        if e%10 == 0:
+        if e%100 == 0:
             print(f'Reward gained in epoch {e}: {reward_sum}')
         rewards += [reward_sum]
-    return agent, rewards
+        if reward_sum > max_reward:
+            max_reward = reward_sum
+            best_agent = copy.deepcopy(agent)
+        if max_reward == 500:
+            break
+    return best_agent, rewards
 
 
 def evaluation(env, agent, epochs=20):
@@ -105,8 +113,8 @@ def evaluation(env, agent, epochs=20):
             observation_next, reward, done, _ = env.step(action)
             reward_sum += reward
             observation = observation_next
-            # env.render()
-        # print(f'Reward gained by the agent:{reward_sum}')
+            env.render()
+        print(f'Reward gained by the agent:{reward_sum}')
         rewards += [reward_sum]
     return rewards
 
@@ -126,6 +134,7 @@ def experiment(epochs, lr, gamma, policy, epsilon, temp, use_replay, use_target,
                                   replay_buffer_size=replay_buffer_size,
                                   replay_batch_size=replay_batch_size,
                                   target_update_interval=target_update_epoch)
+    print("Max reward gained during training: ", max(rewards))
     rewards += evaluation(env, agent)
     env.close()
     return rewards
@@ -139,14 +148,16 @@ if __name__ == "__main__":
                         help="discount")
     parser.add_argument("-s", "--strategy", type=str, default="egreedy",
                         help="Exploration strategy (default: egreedy)")
-    parser.add_argument("-e", "--epsilon", type=float, default=0.2,
+    parser.add_argument("-e", "--epsilon", type=float, default=0.4,
                         help="epsilon for e-greedy")
     parser.add_argument("-c", "--tempture", type=float, default=1.0,
                         help="tempture for softmax")
+    parser.add_argument("-a", "--average", action="store_true",
+                        help="Whether to repeat expeiment for average. (default: False)")
     parser.add_argument("-r", "--replay", action="store_true",
-                        help="Whether to enable experience replay (default: False)")
+                        help="Whether to enable experience replay. (default: False)")
     parser.add_argument("-t", "--target_network", action="store_true",
-                        help="Whether to enable target network (default: False)")
+                        help="Whether to enable target network. (default: False)")
 
     args = parser.parse_args()
     if args.replay:
@@ -154,7 +165,7 @@ if __name__ == "__main__":
     if args.target_network:
         print("target network turned on")
 
-    epochs = 300
+    epochs = 501
     lr = args.lr
     gamma = args.gamma
 
@@ -167,14 +178,15 @@ if __name__ == "__main__":
     target_update_epoch = 3
 
     rewards = []
-    for i in range(10):
+    times = 10 if args.average else 1
+    for i in range(times):
         print(f"======================={i}=======================")
         rewards += [experiment(epochs, lr, gamma, policy, epsilon, temp,
                                args.replay, args.target_network,
                                replay_buffer_size, replay_batch_size,
                                target_update_epoch)]
-    path = "data/"+str(lr)+"_"+str(gamma)+"_"+policy + \
-        "_"+str(epsilon)+"_"+str(temp)+"_"+str(replay_buffer_size) + \
-        "_"+str(replay_batch_size)+"_"+str(target_update_epoch) + \
-        "_"+str(args.replay)+"_"+str(args.target_network)
-    np.save(path+".npy", np.array(rewards))
+    # path = "data/"+str(lr)+"_"+str(gamma)+"_"+policy + \
+    #     "_"+str(epsilon)+"_"+str(temp)+"_"+str(replay_buffer_size) + \
+    #     "_"+str(replay_batch_size)+"_"+str(target_update_epoch) + \
+    #     "_"+str(args.replay)+"_"+str(args.target_network)
+    # np.save(path+".npy", np.array(rewards))

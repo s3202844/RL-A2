@@ -45,7 +45,7 @@
 # curr=$(date "+%Y-%m-%d %H:%M:%S")
 # echo "Start Time: $curr"
 # start_time=$(date +%s)
-# `python dqn.py -l=0.1 -g=0.8 -s=egreedy -e=0.4 -c=1.0`
+# python dqn.py -l=0.1 -g=0.8 -s=egreedy -e=0.4 -c=1.0
 # end_time=$(date +%s)
 # cost_time=$[ $end_time-$start_time ]
 # echo "Spent Time: $(($cost_time/60))min $(($cost_time%60))s"
@@ -75,14 +75,14 @@
 # cost_time=$[ $end_time-$start_time ]
 # echo "Spent Time: $(($cost_time/60))min $(($cost_time%60))s"
 
-# # additional
-# curr=$(date "+%Y-%m-%d %H:%M:%S")
-# echo "Start Time: $curr"
-# start_time=$(date +%s)
-# python dqn.py -r
-# end_time=$(date +%s)
-# cost_time=$[ $end_time-$start_time ]
-# echo "Spent Time: $(($cost_time/60))min $(($cost_time%60))s"
+# additional
+curr=$(date "+%Y-%m-%d %H:%M:%S")
+echo "Start Time: $curr"
+start_time=$(date +%s)
+python dqn.py -r
+end_time=$(date +%s)
+cost_time=$[ $end_time-$start_time ]
+echo "Spent Time: $(($cost_time/60))min $(($cost_time%60))s"
 
 curr=$(date "+%Y-%m-%d %H:%M:%S")
 echo "Start Time: $curr"
